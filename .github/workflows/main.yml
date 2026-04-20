@@ -1,0 +1,53 @@
+name: Build APK
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y python3-pip build-essential git python3 python3-dev ffmpeg libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev openjdk-17-jdk
+
+    - name: Install Buildozer
+      run: |
+        pip3 install buildozer cython
+
+    - name: Create buildozer.spec
+      run: |
+        cat > buildozer.spec << 'EOF'
+        [app]
+        title = Kids Learn
+        package.name = kidslearn
+        package.domain = org.kidslearn
+        source.dir = .
+        source.include_exts = py,png,jpg,kv,atlas
+        version = 1.0
+        requirements = python3,kivy
+        orientation = portrait
+        fullscreen = 0
+        android.permissions = INTERNET
+        android.api = 31
+        android.minapi = 21
+        android.ndk = 25b
+        android.archs = arm64-v8a
+
+        [buildozer]
+        log_level = 2
+        warn_on_root = 1
+        EOF
+
+    - name: Build APK
+      run: |
+        yes | buildozer android debug
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: kids-learn-apk
+        path: bin/*.apk
