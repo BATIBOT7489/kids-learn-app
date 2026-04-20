@@ -1,57 +1,33 @@
-name: Build APK
-on: [push]
+- name: Build APK
+  run: |
+    export BUILDOZER_WARN_ON_ROOT=0
 
-jobs:
-  build:
-    runs-on: ubuntu-22.04
+    # 🔥 fix NDK conflict
+    export ANDROID_NDK_HOME=""
+    export ANDROID_NDK=""
+    export ANDROID_NDK_ROOT=""
 
-    steps:
-    - uses: actions/checkout@v3
+    # ✅ CREATE spec manually (no init issues)
+    cat > buildozer.spec << EOF
+    [app]
+    title = Kids Learn
+    package.name = kidslearn
+    package.domain = org.kidslearn
+    source.dir = .
+    source.include_exts = py
+    version = 1.0
+    requirements = python3,kivy
+    orientation = portrait
 
-    - name: Set up Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '17'
+    android.api = 31
+    android.minapi = 21
+    android.ndk = 25b
+    android.archs = arm64-v8a
+    android.accept_sdk_license = True
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
+    [buildozer]
+    log_level = 2
+    warn_on_root = 0
+    EOF
 
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          build-essential git python3-dev \
-          libsdl2-dev libsdl2-image-dev \
-          libsdl2-mixer-dev libsdl2-ttf-dev \
-          libportmidi-dev zlib1g-dev \
-          unzip zip
-
-        pip install --user buildozer cython
-        echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-    - name: Build APK
-      run: |
-        export BUILDOZER_WARN_ON_ROOT=0
-
-        # 🔥 FIX: remove wrong NDK from GitHub runner
-        export ANDROID_NDK_HOME=""
-        export ANDROID_NDK=""
-        export ANDROID_NDK_ROOT=""
-
-        buildozer init || true
-
-        sed -i 's/title = .*/title = Kids Learn/' buildozer.spec
-        sed -i 's/package.name = .*/package.name = kidslearn/' buildozer.spec
-        sed -i 's/package.domain = .*/package.domain = org.kidslearn/' buildozer.spec
-        sed -i 's/requirements = .*/requirements = python3,kivy/' buildozer.spec
-
-        buildozer android debug
-
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: kids-learn-apk
-        path: bin/*.apk
+    buildozer android debug
