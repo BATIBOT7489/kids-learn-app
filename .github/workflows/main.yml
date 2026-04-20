@@ -1,4 +1,4 @@
-name: Build APK
+name: Calli 
 on: [push]
 
 jobs:
