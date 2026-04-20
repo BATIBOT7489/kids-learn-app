@@ -19,21 +19,10 @@ jobs:
           libsdl2-dev libsdl2-image-dev \
           libsdl2-mixer-dev libsdl2-ttf-dev \
           libportmidi-dev zlib1g-dev \
-          openjdk-17-jdk
+          openjdk-17-jdk unzip
         pip install buildozer cython
 
-    - name: Setup Android SDK
-      run: |
-        echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
-          "platform-tools" \
-          "platforms;android-31" \
-          "build-tools;31.0.0"
-        ln -sf $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
-          $ANDROID_HOME/tools/bin/sdkmanager || true
-
     - name: Build APK
-      env:
-        ANDROIDSDK: ${{ env.ANDROID_HOME }}
       run: |
         cat > buildozer.spec << EOF
         [app]
@@ -49,11 +38,13 @@ jobs:
         android.minapi = 21
         android.ndk = 25b
         android.archs = arm64-v8a
-        android.skip_update = True
+        android.accept_sdk_license = True
         [buildozer]
         log_level = 2
         warn_on_root = 1
         EOF
+        export ANDROID_HOME=""
+        export ANDROID_SDK_ROOT=""
         buildozer android debug 2>&1
 
     - name: Upload APK
