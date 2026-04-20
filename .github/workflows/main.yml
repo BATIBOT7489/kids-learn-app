@@ -33,10 +33,11 @@ jobs:
         docker run --rm \
           -v $(pwd):/home/user/hostcwd \
           kivy/buildozer \
-          android debug
+          android debug 2>1
+        
 
     - name: Upload APK
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: kids-learn-apk
         path: bin/*.apk
