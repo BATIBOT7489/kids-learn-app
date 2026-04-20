@@ -5,10 +5,12 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
+
     - name: Install Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.10'
+
     - name: Install dependencies
       run: |
         sudo apt-get update
@@ -17,14 +19,16 @@ jobs:
           libsdl2-dev libsdl2-image-dev \
           libsdl2-mixer-dev libsdl2-ttf-dev \
           libportmidi-dev zlib1g-dev \
-          openjdk-17-jdk aidl
+          openjdk-17-jdk
         pip install buildozer cython
+
     - name: Setup Android SDK
       run: |
         echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
           "platform-tools" \
           "platforms;android-31" \
           "build-tools;31.0.0"
+
     - name: Build APK
       run: |
         cat > buildozer.spec << EOF
@@ -41,14 +45,16 @@ jobs:
         android.minapi = 21
         android.ndk = 25b
         android.archs = arm64-v8a
-        android.sdk_path = /usr/local/lib/android/sdk
+        android.sdk_path = $ANDROID_HOME
+        android.ndk_path = /home/runner/.buildozer/android/platform/android-ndk-r25b
         [buildozer]
         log_level = 2
         warn_on_root = 1
         EOF
         buildozer android debug 2>&1
+
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: kids-learn-apk
-        path: bin/*.apk
+        path: bi
