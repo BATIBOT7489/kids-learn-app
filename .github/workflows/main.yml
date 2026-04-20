@@ -6,14 +6,37 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Build with Buildozer
-      uses: ArtemSBulgakov/buildozer-action@v1
-      id: buildozer
-      with:
-        command: android debug
+    - name: Create buildozer.spec
+      run: |
+        cat > buildozer.spec << 'EOF'
+        [app]
+        title = Kids Learn
+        package.name = kidslearn
+        package.domain = org.kidslearn
+        source.dir = .
+        source.include_exts = py
+        version = 1.0
+        requirements = python3,kivy
+        orientation = portrait
+        android.api = 33
+        android.minapi = 21
+        android.archs = arm64-v8a
+        android.accept_sdk_license = True
+        [buildozer]
+        log_level = 2
+        warn_on_root = 1
+        EOF
+
+    - name: Build with Docker
+      run: |
+        docker pull kivy/buildozer
+        docker run --rm \
+          -v $(pwd):/home/user/hostcwd \
+          kivy/buildozer \
+          android debug
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: kids-learn-apk
-        path: ${{ steps.buildozer.outputs.filename }}
+        path: bin/*.apk
