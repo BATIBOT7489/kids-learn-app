@@ -17,8 +17,14 @@ jobs:
           libsdl2-dev libsdl2-image-dev \
           libsdl2-mixer-dev libsdl2-ttf-dev \
           libportmidi-dev zlib1g-dev \
-          openjdk-17-jdk
+          openjdk-17-jdk aidl
         pip install buildozer cython
+    - name: Setup Android SDK
+      run: |
+        echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
+          "platform-tools" \
+          "platforms;android-31" \
+          "build-tools;31.0.0"
     - name: Build APK
       run: |
         cat > buildozer.spec << EOF
@@ -35,6 +41,7 @@ jobs:
         android.minapi = 21
         android.ndk = 25b
         android.archs = arm64-v8a
+        android.sdk_path = /usr/local/lib/android/sdk
         [buildozer]
         log_level = 2
         warn_on_root = 1
